@@ -1,6 +1,7 @@
 services:
   - type: web
     name: audio-notes-api
+    plan: free
     env: python
     buildCommand: "cd backend && pip install -r requirements.txt"
     startCommand: "cd backend && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port $PORT"
