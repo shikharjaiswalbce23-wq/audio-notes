@@ -10,12 +10,10 @@ To configure the application for production deployment, setting up the infrastru
 ## What was implemented
 
 ### 1. Infrastructure as Code (`render.yaml`)
-Created a comprehensive Render Blueprint (`render.yaml`) to define the backend infrastructure declaratively. This file configures:
+Created a simplified Render Blueprint (`render.yaml`) to define the backend infrastructure declaratively. This file configures:
 - **FastAPI Web Service:** The main API backend, automatically running database migrations (`alembic upgrade head`) before starting `uvicorn`.
-- **RQ Worker Service:** A background worker running `rq worker` to process audio files from the queue.
-- **Managed Redis Instance:** A free-tier Redis instance used for the RQ queue.
+- **BackgroundTasks:** Refactored the architecture to use FastAPI's built-in `BackgroundTasks` instead of a separate RQ worker. This allows the backend to be deployed **100% for free** on Render's Web Service tier.
 - **Managed PostgreSQL Instance:** A free-tier PostgreSQL database for storing upload metadata and results.
-- **Environment Variable Binding:** Automatically wires the internal `DATABASE_URL` and `REDIS_URL` across services without manual intervention.
 
 ### 2. CORS & Security (`main.py`)
 - Updated `CORSMiddleware` in FastAPI to dynamically read the allowed origin from the `FRONTEND_URL` environment variable.
@@ -34,7 +32,7 @@ Created a comprehensive Render Blueprint (`render.yaml`) to define the backend i
 2. Log in to [Render](https://render.com) and click **New > Blueprint**.
 3. Connect your repository. Render will automatically detect the `render.yaml` file.
 4. Fill in the missing secret environment variables (AWS, Gnan, Gemini credentials, and `FRONTEND_URL` once Vercel is deployed).
-5. Click **Apply**. Render will automatically provision the PostgreSQL DB, Redis instance, FastAPI Web Service, and RQ Worker.
+5. Click **Apply**. Render will automatically provision the PostgreSQL DB and the FastAPI Web Service on their free tiers!
 
 ### Deploying the Frontend (Vercel)
 1. Log in to [Vercel](https://vercel.com) and click **Add New > Project**.
@@ -48,4 +46,4 @@ Created a comprehensive Render Blueprint (`render.yaml`) to define the backend i
 
 ## Interview Explanation
 
-> "In Phase 11, I prepared the application for a production environment. I chose Render for the backend because its Blueprint system (`render.yaml`) allows us to define our Web Service, Background Worker, Redis queue, and Postgres database entirely through code. I also ensured that our FastAPI app handles dynamic CORS origins securely using environment variables and patched a common SQLAlchemy deployment bug regarding the `postgres://` URL scheme. Finally, the frontend is ready to be deployed on Vercel simply by pointing `NEXT_PUBLIC_API_URL` to our deployed backend API."
+> "In Phase 11, I prepared the application for a production environment. To ensure the project could be hosted entirely for free on Render without adding a credit card, I refactored the architecture to remove the separate Redis/RQ background worker, opting instead for FastAPI's built-in `BackgroundTasks`. This allowed me to define a streamlined infrastructure-as-code `render.yaml` file containing just a Web Service and a PostgreSQL database. I also ensured that our FastAPI app handles dynamic CORS origins securely using environment variables and patched a common SQLAlchemy deployment bug regarding the `postgres://` URL scheme. Finally, the frontend is ready to be deployed on Vercel simply by pointing `NEXT_PUBLIC_API_URL` to our deployed backend API."

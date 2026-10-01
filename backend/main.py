@@ -6,18 +6,13 @@ from sqlalchemy.orm import Session
 from database import engine, Base, get_db
 import models, schemas, crud
 import storage_service
-from redis import Redis
-from rq import Queue
+from fastapi import BackgroundTasks
 from tasks import process_audio
 
 # Create tables (we also have alembic, but this is safe)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Audio Notes API")
-
-redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-redis_conn = Redis.from_url(redis_url)
-q = Queue('default', connection=redis_conn)
 
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
 origins = [frontend_url]
@@ -56,7 +51,7 @@ def health_check():
     return {"status": "ok"}
 
 @app.post("/uploads", response_model=schemas.UploadResponse, status_code=status.HTTP_201_CREATED)
-async def upload_audio(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_audio(background_tasks: BackgroundTasks, file: UploadFile = File(...), db: Session = Depends(get_db)):
     if file.content_type not in ALLOWED_TYPES:
         raise HTTPException(status_code=400, detail="Invalid file type. Please upload an audio file (MP3, WAV, M4A, OGG, WEBM, FLAC).")
     
@@ -80,8 +75,8 @@ async def upload_audio(file: UploadFile = File(...), db: Session = Depends(get_d
     # Enqueue background job
     db_upload = crud.update_upload_status(db, db_upload.id, status="QUEUED", progress=0)
     
-    # Push job to RQ
-    q.enqueue(process_audio, str(db_upload.id))
+    # Push job to BackgroundTasks
+    background_tasks.add_task(process_audio, str(db_upload.id))
     
     return db_upload
 

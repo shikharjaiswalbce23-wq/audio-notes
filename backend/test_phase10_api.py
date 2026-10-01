@@ -83,7 +83,7 @@ def test_health_check_returns_ok(client):
 
 def test_upload_success_returns_201(client):
     with patch('main.storage_service.upload_file', return_value=True), \
-         patch('main.q.enqueue'):
+         patch('fastapi.BackgroundTasks.add_task'):
         resp = client.post('/uploads', files=[make_audio_file()])
 
     assert resp.status_code == 201
@@ -115,7 +115,7 @@ def test_upload_storage_failure_returns_500(client):
 
 def test_upload_response_schema(client):
     with patch('main.storage_service.upload_file', return_value=True), \
-         patch('main.q.enqueue'):
+         patch('fastapi.BackgroundTasks.add_task'):
         resp = client.post('/uploads', files=[make_audio_file()])
 
     body = resp.json()
@@ -126,7 +126,7 @@ def test_upload_response_schema(client):
 
 def test_upload_enqueues_job(client):
     with patch('main.storage_service.upload_file', return_value=True), \
-         patch('main.q.enqueue') as mock_enqueue:
+         patch('fastapi.BackgroundTasks.add_task') as mock_enqueue:
         client.post('/uploads', files=[make_audio_file()])
     mock_enqueue.assert_called_once()
     print('test_upload_enqueues_job PASSED')
@@ -136,7 +136,7 @@ def test_upload_enqueues_job(client):
 
 def test_get_upload_returns_record(client):
     with patch('main.storage_service.upload_file', return_value=True), \
-         patch('main.q.enqueue'):
+         patch('fastapi.BackgroundTasks.add_task'):
         post_resp = client.post('/uploads', files=[make_audio_file()])
 
     assert post_resp.status_code == 201, post_resp.text

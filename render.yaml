@@ -11,11 +11,6 @@ services:
         fromDatabase:
           name: audio-notes-db
           property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: audio-notes-redis
-          property: connectionString
       - key: FRONTEND_URL
         sync: false
       - key: AWS_ACCESS_KEY_ID
@@ -30,41 +25,6 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
-
-  - type: worker
-    name: audio-notes-worker
-    env: python
-    buildCommand: "cd backend && pip install -r requirements.txt"
-    startCommand: "cd backend && rq worker default"
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.10.0
-      - key: DATABASE_URL
-        fromDatabase:
-          name: audio-notes-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: audio-notes-redis
-          property: connectionString
-      - key: AWS_ACCESS_KEY_ID
-        sync: false
-      - key: AWS_SECRET_ACCESS_KEY
-        sync: false
-      - key: AWS_BUCKET_NAME
-        sync: false
-      - key: AWS_REGION
-        value: us-east-1
-      - key: GNAN_API_KEY
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-
-  - type: redis
-    name: audio-notes-redis
-    ipAllowList: []
-    plan: free
 
 databases:
   - name: audio-notes-db
