@@ -18,7 +18,7 @@ services:
         sync: false
       - key: AWS_SECRET_ACCESS_KEY
         sync: false
-      - key: AWS_BUCKET_NAME
+      - key: S3_BUCKET_NAME
         sync: false
       - key: AWS_REGION
         value: us-east-1
