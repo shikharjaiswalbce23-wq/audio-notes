@@ -52,7 +52,13 @@ def health_check():
 
 @app.post("/uploads", response_model=schemas.UploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_audio(background_tasks: BackgroundTasks, file: UploadFile = File(...), db: Session = Depends(get_db)):
-    if file.content_type not in ALLOWED_TYPES:
+    allowed_extensions = (".mp3", ".wav", ".m4a", ".ogg", ".webm", ".flac")
+    
+    # Check if it's an audio MIME type OR has a valid audio extension
+    is_audio_mime = file.content_type.startswith("audio/")
+    has_valid_ext = any(file.filename.lower().endswith(ext) for ext in allowed_extensions)
+    
+    if not (is_audio_mime or has_valid_ext):
         raise HTTPException(status_code=400, detail="Invalid file type. Please upload an audio file (MP3, WAV, M4A, OGG, WEBM, FLAC).")
     
     if file.size and file.size > MAX_FILE_SIZE:
