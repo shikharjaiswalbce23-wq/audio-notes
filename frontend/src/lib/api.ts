@@ -61,3 +61,20 @@ export const deleteUpload = async (id: string): Promise<void> => {
     throw new Error(errorData.detail || "Failed to delete upload");
   }
 };
+
+export const updateUpload = async (id: string, filename: string): Promise<UploadResponse> => {
+  const response = await fetch(`${API_BASE_URL}/uploads/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ filename }),
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to update upload");
+  }
+
+  return response.json();
+};

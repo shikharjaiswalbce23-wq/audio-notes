@@ -97,6 +97,17 @@ def get_upload_status(upload_id: uuid.UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Upload not found")
     return db_upload
 
+from pydantic import BaseModel
+class UploadUpdate(BaseModel):
+    filename: str
+
+@app.put("/uploads/{upload_id}", response_model=schemas.UploadResponse)
+def update_upload_endpoint(upload_id: uuid.UUID, update_data: UploadUpdate, db: Session = Depends(get_db)):
+    db_upload = crud.update_upload(db, upload_id, filename=update_data.filename)
+    if not db_upload:
+        raise HTTPException(status_code=404, detail="Upload not found")
+    return db_upload
+
 @app.delete("/uploads/{upload_id}")
 def delete_upload_endpoint(upload_id: uuid.UUID, db: Session = Depends(get_db)):
     success = crud.delete_upload(db, upload_id)
