@@ -22,7 +22,7 @@ services:
         sync: false
       - key: AWS_REGION
         value: us-east-1
-      - key: GNAN_API_KEY
+      - key: GNANI_API_KEY
         sync: false
       - key: GEMINI_API_KEY
         sync: false
