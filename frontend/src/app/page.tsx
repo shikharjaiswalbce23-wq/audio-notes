@@ -25,10 +25,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (uploadInfo) {
-      setRefreshTrigger(prev => prev + 1);
-    }
-  }, [uploadInfo?.status, uploadInfo?.id]);
+    setRefreshTrigger(prev => prev + 1);
+  }, [uploadInfo?.status, uploadInfo?.id, uploadInfo === null]);
 
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
