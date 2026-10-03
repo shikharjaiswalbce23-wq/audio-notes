@@ -101,14 +101,16 @@ def _transcribe_batch(audio_path: str, language_code: str = None, format: str = 
     # 1. Create Job
     with open(audio_path, "rb") as f:
         filename = os.path.basename(audio_path)
-        files = {"audio_file": (filename, f)}
+        # The Batch API uses the key "files", unlike the REST API which uses "audio_file"
+        files_payload = {"files": (filename, f)}
         config_data = {
+            "model": "gnani-prisma-v2.5", # required for Batch API
             "language_code": lang,
-            "format": format,
+            "mode": format, # it uses "mode" in batch config instead of "format"
         }
         data = {"config": json.dumps(config_data)}
         
-        create_resp = requests.post(base_batch_url, headers=headers, files=files, data=data, timeout=60)
+        create_resp = requests.post(base_batch_url, headers=headers, files=files_payload, data=data, timeout=60)
         
     if create_resp.status_code not in (200, 201):
         raise RuntimeError(f"Gnani.ai Batch API create error {create_resp.status_code}: {create_resp.text}")
