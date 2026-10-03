@@ -86,6 +86,10 @@ async def upload_audio(background_tasks: BackgroundTasks, file: UploadFile = Fil
     
     return db_upload
 
+@app.get("/uploads", response_model=list[schemas.UploadResponse])
+def get_uploads_list(limit: int = 10, db: Session = Depends(get_db)):
+    return crud.get_uploads(db, limit=limit)
+
 @app.get("/uploads/{upload_id}", response_model=schemas.UploadResponse)
 def get_upload_status(upload_id: uuid.UUID, db: Session = Depends(get_db)):
     db_upload = crud.get_upload(db, upload_id)

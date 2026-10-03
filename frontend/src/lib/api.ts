@@ -39,3 +39,14 @@ export const getUploadStatus = async (id: string): Promise<UploadResponse> => {
 
   return response.json();
 };
+
+export const getUploads = async (limit: number = 10): Promise<UploadResponse[]> => {
+  const response = await fetch(`${API_BASE_URL}/uploads?limit=${limit}`);
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to fetch uploads list");
+  }
+
+  return response.json();
+};

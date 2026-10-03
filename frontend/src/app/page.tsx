@@ -5,6 +5,7 @@ import "./globals.css";
 import UploadForm from "../components/UploadForm";
 import StatusPanel from "../components/StatusPanel";
 import ResultsPanel from "../components/ResultsPanel";
+import PastUploads from "../components/PastUploads";
 import { uploadAudio, getUploadStatus, UploadResponse } from "../lib/api";
 
 export default function Home() {
@@ -92,11 +93,19 @@ export default function Home() {
         <p className="subtitle">Upload your audio to get AI-powered transcripts & summaries</p>
 
         {(!uploadInfo || ["FAILED"].includes(uploadInfo.status)) && (
-          <UploadForm onUpload={handleUpload} isUploading={isUploading} />
+          <>
+            <UploadForm onUpload={handleUpload} isUploading={isUploading} />
+            <PastUploads onSelect={setUploadInfo} />
+          </>
         )}
 
-        <StatusPanel uploadInfo={uploadInfo} />
-        <ResultsPanel uploadInfo={uploadInfo} />
+        {uploadInfo && !["FAILED"].includes(uploadInfo.status) && (
+          <StatusPanel uploadInfo={uploadInfo} />
+        )}
+        
+        {uploadInfo && !["FAILED"].includes(uploadInfo.status) && (
+          <ResultsPanel uploadInfo={uploadInfo} />
+        )}
         
         {uploadInfo && ["COMPLETED", "FAILED"].includes(uploadInfo.status) && (
           <button 
