@@ -186,7 +186,8 @@ def transcribe_batch(
 
         if not transcript_url:
 
-            completed_files = files_body.get("files", [])
+            # Gnani Batch API returns the file list in a "data" array
+            completed_files = files_body.get("data", [])
 
             if completed_files:
                 transcript_url = completed_files[0].get(
