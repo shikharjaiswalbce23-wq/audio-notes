@@ -150,7 +150,17 @@ def _transcribe_batch(audio_path: str, language_code: str = None, format: str = 
         raise RuntimeError(f"Gnani.ai Batch API files error {files_resp.status_code}: {files_resp.text}")
         
     files_body = files_resp.json()
-    transcript_url = files_body.get("transcript_url")
+    
+    # The API returns a list of files or an object containing a list of files.
+    transcript_url = None
+    if isinstance(files_body, list) and len(files_body) > 0:
+        transcript_url = files_body[0].get("transcript_url")
+    elif isinstance(files_body, dict):
+        if "transcript_url" in files_body:
+            transcript_url = files_body.get("transcript_url")
+        elif "files" in files_body and isinstance(files_body["files"], list) and len(files_body["files"]) > 0:
+            transcript_url = files_body["files"][0].get("transcript_url")
+            
     if not transcript_url:
         raise RuntimeError(f"No transcript_url in batch files response: {files_body}")
         
@@ -160,7 +170,7 @@ def _transcribe_batch(audio_path: str, language_code: str = None, format: str = 
         raise RuntimeError(f"Failed to download transcript from {transcript_url}: {dl_resp.status_code}")
         
     dl_body = dl_resp.json()
-    transcript = dl_body.get("transcript")
+    transcript = dl_body.get("full_transcript") or dl_body.get("transcript")
     if transcript is None:
         raise RuntimeError(f"Gnani.ai Batch API returned unexpected transcript format: {dl_body}")
         
