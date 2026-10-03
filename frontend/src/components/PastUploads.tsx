@@ -49,7 +49,7 @@ export default function PastUploads({ onSelect }: { onSelect: (upload: UploadRes
                   {new Date(upload.created_at).toLocaleDateString()}
                 </p>
               </div>
-              <div>
+              <div style={{ paddingRight: '3rem' }}>
                 <span className={`text-xs px-2 py-1 rounded-full ${upload.status === 'COMPLETED' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                   {upload.status}
                 </span>
