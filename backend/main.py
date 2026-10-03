@@ -86,31 +86,9 @@ async def upload_audio(background_tasks: BackgroundTasks, file: UploadFile = Fil
     
     return db_upload
 
-@app.get("/uploads", response_model=list[schemas.UploadResponse])
-def get_uploads_list(limit: int = 10, db: Session = Depends(get_db)):
-    return crud.get_uploads(db, limit=limit)
-
 @app.get("/uploads/{upload_id}", response_model=schemas.UploadResponse)
 def get_upload_status(upload_id: uuid.UUID, db: Session = Depends(get_db)):
     db_upload = crud.get_upload(db, upload_id)
     if not db_upload:
         raise HTTPException(status_code=404, detail="Upload not found")
     return db_upload
-
-from pydantic import BaseModel
-class UploadUpdate(BaseModel):
-    filename: str
-
-@app.put("/uploads/{upload_id}", response_model=schemas.UploadResponse)
-def update_upload_endpoint(upload_id: uuid.UUID, update_data: UploadUpdate, db: Session = Depends(get_db)):
-    db_upload = crud.update_upload(db, upload_id, filename=update_data.filename)
-    if not db_upload:
-        raise HTTPException(status_code=404, detail="Upload not found")
-    return db_upload
-
-@app.delete("/uploads/{upload_id}")
-def delete_upload_endpoint(upload_id: uuid.UUID, db: Session = Depends(get_db)):
-    success = crud.delete_upload(db, upload_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Upload not found")
-    return {"status": "deleted"}

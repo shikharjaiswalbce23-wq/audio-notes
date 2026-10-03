@@ -81,7 +81,7 @@ export default function UploadForm({ onUpload, isUploading }: UploadFormProps) {
       </div>
 
       <button
-        className="btn mt-4"
+        className="btn"
         onClick={handleSubmit}
         disabled={!file || isUploading}
       >

@@ -5,15 +5,12 @@ import "./globals.css";
 import UploadForm from "../components/UploadForm";
 import StatusPanel from "../components/StatusPanel";
 import ResultsPanel from "../components/ResultsPanel";
-import PastUploads from "../components/PastUploads";
 import { uploadAudio, getUploadStatus, UploadResponse } from "../lib/api";
 
 export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadInfo, setUploadInfo] = useState<UploadResponse | null>(null);
   const [theme, setTheme] = useState("dark");
-
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     // Load theme from localStorage on mount
@@ -76,64 +73,40 @@ export default function Home() {
     }
   };
 
-  const handleUploadNext = () => {
-    setRefreshTrigger(prev => prev + 1);
-    setUploadInfo(null);
-  };
-
   return (
-    <div className="app-container">
-      {/* Sidebar */}
-      <div className="sidebar">
+    <div className="container" style={{ maxWidth: uploadInfo && uploadInfo.status === "COMPLETED" ? "800px" : "600px", transition: "max-width 0.5s ease" }}>
+      <div className="card" style={{ position: 'relative' }}>
         <button 
-          className="new-chat-btn" 
-          onClick={handleUploadNext}
+          onClick={toggleTheme} 
+          style={{ 
+            position: 'absolute', top: '1.5rem', right: '1.5rem', 
+            background: 'transparent', border: 'none', 
+            fontSize: '1.5rem', cursor: 'pointer',
+            color: 'var(--foreground)'
+          }}
+          title="Toggle Theme"
         >
-          <span style={{ fontSize: '1.2rem' }}>+</span> New Upload
+          {theme === 'dark' ? '☀️' : '🌙'}
         </button>
+        <h1 className="title">Audio Notes</h1>
+        <p className="subtitle">Upload your audio to get AI-powered transcripts & summaries</p>
+
+        {(!uploadInfo || ["FAILED"].includes(uploadInfo.status)) && (
+          <UploadForm onUpload={handleUpload} isUploading={isUploading} />
+        )}
+
+        <StatusPanel uploadInfo={uploadInfo} />
+        <ResultsPanel uploadInfo={uploadInfo} />
         
-        <PastUploads onSelect={setUploadInfo} refreshTrigger={refreshTrigger} />
-      </div>
-
-      {/* Main Content */}
-      <div className="main-content">
-        <div className="top-bar">
+        {uploadInfo && ["COMPLETED", "FAILED"].includes(uploadInfo.status) && (
           <button 
-            className="theme-toggle"
-            onClick={toggleTheme}
-            title="Toggle Theme"
+            className="btn mt-8" 
+            style={{ marginTop: '2rem' }}
+            onClick={() => setUploadInfo(null)}
           >
-            {theme === 'dark' ? '☀️' : '🌙'}
+            Upload Another File
           </button>
-        </div>
-
-        <div className="content-wrapper">
-          <div className="card">
-            <h1 className="title">Audio Notes</h1>
-            <p className="subtitle">Upload your audio to get AI-powered transcripts & summaries</p>
-
-            {(!uploadInfo || ["FAILED"].includes(uploadInfo.status)) && (
-              <UploadForm onUpload={handleUpload} isUploading={isUploading} />
-            )}
-
-            {uploadInfo && !["FAILED"].includes(uploadInfo.status) && (
-              <StatusPanel uploadInfo={uploadInfo} />
-            )}
-            
-            {uploadInfo && !["FAILED"].includes(uploadInfo.status) && (
-              <ResultsPanel uploadInfo={uploadInfo} />
-            )}
-
-            {uploadInfo && ["COMPLETED"].includes(uploadInfo.status) && (
-              <button 
-                className="btn mt-8" 
-                onClick={handleUploadNext}
-              >
-                Upload Next Audio
-              </button>
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

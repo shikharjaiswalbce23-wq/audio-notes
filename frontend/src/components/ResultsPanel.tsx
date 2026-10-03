@@ -10,7 +10,7 @@ export default function ResultsPanel({ uploadInfo }: ResultsPanelProps) {
   }
 
   return (
-    <div className="results-panel mt-8 text-left w-full">
+    <div className="results-panel mt-8 text-left">
       {uploadInfo.summary && (
         <div className="result-section">
           <h2 className="section-title text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
