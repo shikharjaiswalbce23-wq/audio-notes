@@ -101,9 +101,9 @@ export default function Home() {
         </div>
 
         <div className="content-wrapper">
-          <div className="content-inner">
+          <div className="card">
             <h1 className="title">Audio Notes</h1>
-            <p className="subtitle">AI-powered transcripts & summaries</p>
+            <p className="subtitle">Upload your audio to get AI-powered transcripts & summaries</p>
 
             {(!uploadInfo || ["FAILED"].includes(uploadInfo.status)) && (
               <UploadForm onUpload={handleUpload} isUploading={isUploading} />
