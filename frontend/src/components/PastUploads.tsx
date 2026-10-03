@@ -1,7 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import { getUploads, deleteUpload, updateUpload, UploadResponse } from "../lib/api";
 
-export default function PastUploads({ onSelect }: { onSelect: (upload: UploadResponse) => void }) {
+export default function PastUploads({ 
+  onSelect, 
+  refreshTrigger = 0 
+}: { 
+  onSelect: (upload: UploadResponse) => void;
+  refreshTrigger?: number;
+}) {
+
   const [uploads, setUploads] = useState<UploadResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -11,7 +18,7 @@ export default function PastUploads({ onSelect }: { onSelect: (upload: UploadRes
   const fetchUploads = async () => {
     try {
       const data = await getUploads(20);
-      setUploads(data.filter(u => u.status === 'COMPLETED' || u.status === 'FAILED'));
+      setUploads(data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -68,7 +75,7 @@ export default function PastUploads({ onSelect }: { onSelect: (upload: UploadRes
 
   useEffect(() => {
     fetchUploads();
-  }, []);
+  }, [refreshTrigger]);
 
   if (loading) return null;
   if (uploads.length === 0) return null;

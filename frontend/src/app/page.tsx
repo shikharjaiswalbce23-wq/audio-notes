@@ -13,6 +13,8 @@ export default function Home() {
   const [uploadInfo, setUploadInfo] = useState<UploadResponse | null>(null);
   const [theme, setTheme] = useState("dark");
 
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   useEffect(() => {
     // Load theme from localStorage on mount
     const savedTheme = localStorage.getItem("theme");
@@ -21,6 +23,12 @@ export default function Home() {
       document.documentElement.setAttribute("data-theme", savedTheme);
     }
   }, []);
+
+  useEffect(() => {
+    if (uploadInfo) {
+      setRefreshTrigger(prev => prev + 1);
+    }
+  }, [uploadInfo?.status, uploadInfo?.id]);
 
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
@@ -85,7 +93,7 @@ export default function Home() {
           <span style={{ fontSize: '1.2rem' }}>+</span> New Upload
         </button>
         
-        <PastUploads onSelect={setUploadInfo} />
+        <PastUploads onSelect={setUploadInfo} refreshTrigger={refreshTrigger} />
       </div>
 
       {/* Main Content */}
@@ -115,6 +123,15 @@ export default function Home() {
             
             {uploadInfo && !["FAILED"].includes(uploadInfo.status) && (
               <ResultsPanel uploadInfo={uploadInfo} />
+            )}
+
+            {uploadInfo && ["COMPLETED"].includes(uploadInfo.status) && (
+              <button 
+                className="btn mt-8" 
+                onClick={() => setUploadInfo(null)}
+              >
+                Upload Another File
+              </button>
             )}
           </div>
         </div>
