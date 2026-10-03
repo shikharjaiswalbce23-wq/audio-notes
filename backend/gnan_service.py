@@ -31,12 +31,19 @@ def transcribe(audio_path: str, language_code: str = None, format: str = "transc
         raise ValueError("GNANI_API_KEY environment variable is not set.")
 
     file_size_mb = os.path.getsize(audio_path) / (1024 * 1024)
-    if file_size_mb > 1.5:
+    # Also use batch if size > 1.0 MB as a generic heuristic to save the roundtrip
+    if file_size_mb > 1.0:
         print(f"[gnan_service] File size is {file_size_mb:.2f}MB, using Batch API for long audio.")
         return _transcribe_batch(audio_path, language_code, format)
     else:
-        print(f"[gnan_service] File size is {file_size_mb:.2f}MB, using Sync API for short audio.")
-        return _transcribe_sync(audio_path, language_code, format)
+        print(f"[gnan_service] File size is {file_size_mb:.2f}MB, trying Sync API for short audio.")
+        try:
+            return _transcribe_sync(audio_path, language_code, format)
+        except RuntimeError as e:
+            if "MAX_AUDIO_DURATION_EXCEEDED" in str(e):
+                print(f"[gnan_service] Sync API failed due to duration > 30s. Falling back to Batch API.")
+                return _transcribe_batch(audio_path, language_code, format)
+            raise e
 
 
 def _transcribe_sync(audio_path: str, language_code: str = None, format: str = "transcribe") -> str:
