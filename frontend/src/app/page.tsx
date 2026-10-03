@@ -77,6 +77,22 @@ export default function Home() {
   return (
     <div className="container" style={{ maxWidth: uploadInfo && uploadInfo.status === "COMPLETED" ? "800px" : "600px", transition: "max-width 0.5s ease" }}>
       <div className="card" style={{ position: 'relative' }}>
+        {uploadInfo && (
+          <button 
+            onClick={() => setUploadInfo(null)}
+            style={{ 
+              position: 'absolute', top: '1.5rem', left: '1.5rem', 
+              background: 'transparent', border: 'none', 
+              fontSize: '1rem', cursor: 'pointer',
+              color: 'var(--text-muted)',
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              fontWeight: 500
+            }}
+            className="hover:text-primary transition-colors"
+          >
+            ← Back
+          </button>
+        )}
         <button 
           onClick={toggleTheme} 
           style={{ 
@@ -89,7 +105,7 @@ export default function Home() {
         >
           {theme === 'dark' ? '☀️' : '🌙'}
         </button>
-        <h1 className="title">Audio Notes</h1>
+        <h1 className="title" style={{ marginTop: uploadInfo ? '1.5rem' : '0' }}>Audio Notes</h1>
         <p className="subtitle">Upload your audio to get AI-powered transcripts & summaries</p>
 
         {(!uploadInfo || ["FAILED"].includes(uploadInfo.status)) && (
