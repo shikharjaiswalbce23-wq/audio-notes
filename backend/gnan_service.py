@@ -96,14 +96,18 @@ def _transcribe_batch(audio_path: str, language_code: str = None, format: str = 
     base_batch_url = GNANI_API_URL.rstrip("/") + "/batch/jobs"
     headers = {"X-API-Key-ID": GNANI_API_KEY}
 
+    import json
+    
     # 1. Create Job
     with open(audio_path, "rb") as f:
         filename = os.path.basename(audio_path)
         files = {"audio_file": (filename, f)}
-        data = {
+        config_data = {
             "language_code": lang,
             "format": format,
         }
+        data = {"config": json.dumps(config_data)}
+        
         create_resp = requests.post(base_batch_url, headers=headers, files=files, data=data, timeout=60)
         
     if create_resp.status_code not in (200, 201):
