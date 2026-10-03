@@ -88,7 +88,7 @@ export default function PastUploads({
           <button
             onClick={() => onSelect(upload)}
             className="sidebar-item"
-            style={{ paddingRight: '4rem' }}
+            style={{ paddingRight: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
           >
             {editingId === upload.id ? (
               <input
@@ -103,8 +103,15 @@ export default function PastUploads({
                 style={{ background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--accent)', borderRadius: '4px', padding: '2px 4px' }}
               />
             ) : (
-              <div className="truncate w-full text-sm">
-                {upload.filename.replace(/\.[^/.]+$/, "")}
+              <div style={{ width: '100%', textAlign: 'left' }}>
+                <div className="truncate w-full text-sm font-semibold">
+                  {upload.filename.replace(/\.[^/.]+$/, "")}
+                </div>
+                {upload.transcript && (
+                  <div className="truncate w-full text-xs text-gray-400 mt-1" style={{ opacity: 0.7 }}>
+                    {upload.transcript}
+                  </div>
+                )}
               </div>
             )}
           </button>
