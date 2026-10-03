@@ -10,6 +10,23 @@ import { uploadAudio, getUploadStatus, UploadResponse } from "../lib/api";
 export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadInfo, setUploadInfo] = useState<UploadResponse | null>(null);
+  const [theme, setTheme] = useState("dark");
+
+  useEffect(() => {
+    // Load theme from localStorage on mount
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+  };
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -58,7 +75,19 @@ export default function Home() {
 
   return (
     <div className="container" style={{ maxWidth: uploadInfo && uploadInfo.status === "COMPLETED" ? "800px" : "600px", transition: "max-width 0.5s ease" }}>
-      <div className="card">
+      <div className="card" style={{ position: 'relative' }}>
+        <button 
+          onClick={toggleTheme} 
+          style={{ 
+            position: 'absolute', top: '1.5rem', right: '1.5rem', 
+            background: 'transparent', border: 'none', 
+            fontSize: '1.5rem', cursor: 'pointer',
+            color: 'var(--foreground)'
+          }}
+          title="Toggle Theme"
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
         <h1 className="title">Audio Notes</h1>
         <p className="subtitle">Upload your audio to get AI-powered transcripts & summaries</p>
 
