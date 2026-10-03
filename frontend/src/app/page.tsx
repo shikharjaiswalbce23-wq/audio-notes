@@ -13,6 +13,8 @@ export default function Home() {
   const [uploadInfo, setUploadInfo] = useState<UploadResponse | null>(null);
   const [theme, setTheme] = useState("dark");
 
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   useEffect(() => {
     // Load theme from localStorage on mount
     const savedTheme = localStorage.getItem("theme");
@@ -74,18 +76,23 @@ export default function Home() {
     }
   };
 
+  const handleUploadNext = () => {
+    setRefreshTrigger(prev => prev + 1);
+    setUploadInfo(null);
+  };
+
   return (
     <div className="app-container">
       {/* Sidebar */}
       <div className="sidebar">
         <button 
           className="new-chat-btn" 
-          onClick={() => setUploadInfo(null)}
+          onClick={handleUploadNext}
         >
           <span style={{ fontSize: '1.2rem' }}>+</span> New Upload
         </button>
         
-        <PastUploads onSelect={setUploadInfo} />
+        <PastUploads onSelect={setUploadInfo} refreshTrigger={refreshTrigger} />
       </div>
 
       {/* Main Content */}
@@ -115,6 +122,15 @@ export default function Home() {
             
             {uploadInfo && !["FAILED"].includes(uploadInfo.status) && (
               <ResultsPanel uploadInfo={uploadInfo} />
+            )}
+
+            {uploadInfo && ["COMPLETED"].includes(uploadInfo.status) && (
+              <button 
+                className="btn mt-8" 
+                onClick={handleUploadNext}
+              >
+                Upload Next Audio
+              </button>
             )}
           </div>
         </div>
