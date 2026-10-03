@@ -50,3 +50,14 @@ export const getUploads = async (limit: number = 10): Promise<UploadResponse[]> 
 
   return response.json();
 };
+
+export const deleteUpload = async (id: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/uploads/${id}`, {
+    method: "DELETE",
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to delete upload");
+  }
+};

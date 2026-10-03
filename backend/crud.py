@@ -42,3 +42,11 @@ def update_upload_results(db: Session, upload_id: uuid.UUID, transcript: str = N
         db.commit()
         db.refresh(db_upload)
     return db_upload
+
+def delete_upload(db: Session, upload_id: uuid.UUID):
+    db_upload = get_upload(db, upload_id)
+    if db_upload:
+        db.delete(db_upload)
+        db.commit()
+        return True
+    return False

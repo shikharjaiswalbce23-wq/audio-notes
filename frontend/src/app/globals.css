@@ -237,3 +237,17 @@ body {
 .bg-red-500\/20 { background-color: rgba(239, 68, 68, 0.2); }
 .text-red-400 { color: #f87171; }
 .border-t { border-top-width: 1px; }
+.w-full { width: 100%; }
+.relative { position: relative; }
+.absolute { position: absolute; }
+.right-3 { right: 0.75rem; }
+.top-1\/2 { top: 50%; }
+.-translate-y-1\/2 { transform: translateY(-50%); }
+.opacity-0 { opacity: 0; }
+.opacity-100 { opacity: 1; }
+.transition-opacity { transition-property: opacity; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+.group:hover .group-hover\:opacity-100 { opacity: 1; }
+.hover\:bg-red-500\/20:hover { background-color: rgba(239, 68, 68, 0.2); }
+.hover\:text-red-400:hover { color: #f87171; }
+.p-2 { padding: 0.5rem; }
+.rounded-md { border-radius: 0.375rem; }
