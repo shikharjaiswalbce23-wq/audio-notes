@@ -1,5 +1,6 @@
 import os
 import requests
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,10 +12,9 @@ GNANI_LANGUAGE_CODE = os.getenv("GNANI_LANGUAGE_CODE", "en-IN")
 
 def transcribe(audio_path: str, language_code: str = None, format: str = "transcribe") -> str:
     """
-    Send an audio file to the Gnani.ai (Vachana) STT REST API and return
-    the transcript text.
-
-    API reference: https://docs.gnani.ai/api/STT/speech-to-text
+    Send an audio file to the Gnani.ai (Vachana) STT API and return the transcript text.
+    Automatically uses the synchronous REST API for short files (< 1.5MB) and the Batch 
+    API for long audio files (> 1.5MB).
 
     Args:
         audio_path:     Absolute path to the local audio file to transcribe.
@@ -26,14 +26,20 @@ def transcribe(audio_path: str, language_code: str = None, format: str = "transc
 
     Returns:
         The transcript as a plain string.
-
-    Raises:
-        ValueError:     If GNANI_API_KEY is not configured.
-        RuntimeError:   If the API call fails or returns a non-200 response.
     """
     if not GNANI_API_KEY:
         raise ValueError("GNANI_API_KEY environment variable is not set.")
 
+    file_size_mb = os.path.getsize(audio_path) / (1024 * 1024)
+    if file_size_mb > 1.5:
+        print(f"[gnan_service] File size is {file_size_mb:.2f}MB, using Batch API for long audio.")
+        return _transcribe_batch(audio_path, language_code, format)
+    else:
+        print(f"[gnan_service] File size is {file_size_mb:.2f}MB, using Sync API for short audio.")
+        return _transcribe_sync(audio_path, language_code, format)
+
+
+def _transcribe_sync(audio_path: str, language_code: str = None, format: str = "transcribe") -> str:
     lang = language_code or GNANI_LANGUAGE_CODE
 
     with open(audio_path, "rb") as f:
@@ -73,4 +79,82 @@ def transcribe(audio_path: str, language_code: str = None, format: str = "transc
             f"Gnani.ai STT API returned unexpected response format: {body}"
         )
 
+    return transcript
+
+
+def _transcribe_batch(audio_path: str, language_code: str = None, format: str = "transcribe") -> str:
+    lang = language_code or GNANI_LANGUAGE_CODE
+    
+    # Base URL for batch (e.g., https://api.vachana.ai/stt/v3/batch/jobs)
+    base_batch_url = GNANI_API_URL.rstrip("/") + "/batch/jobs"
+    headers = {"X-API-Key-ID": GNANI_API_KEY}
+
+    # 1. Create Job
+    with open(audio_path, "rb") as f:
+        filename = os.path.basename(audio_path)
+        files = {"audio_file": (filename, f)}
+        data = {
+            "language_code": lang,
+            "format": format,
+        }
+        create_resp = requests.post(base_batch_url, headers=headers, files=files, data=data, timeout=60)
+        
+    if create_resp.status_code not in (200, 201):
+        raise RuntimeError(f"Gnani.ai Batch API create error {create_resp.status_code}: {create_resp.text}")
+        
+    create_body = create_resp.json()
+    job_id = create_body.get("job_id")
+    if not job_id:
+        raise RuntimeError(f"No job_id returned from batch create: {create_body}")
+        
+    print(f"[gnan_service] Batch job created: {job_id}. Starting job...")
+        
+    # 2. Start Job
+    start_url = f"{base_batch_url}/{job_id}/start"
+    start_resp = requests.post(start_url, headers=headers, timeout=30)
+    if start_resp.status_code not in (200, 201):
+        raise RuntimeError(f"Gnani.ai Batch API start error {start_resp.status_code}: {start_resp.text}")
+        
+    print(f"[gnan_service] Batch job {job_id} started. Polling for completion...")
+
+    # 3. Poll Status
+    status_url = f"{base_batch_url}/{job_id}"
+    while True:
+        status_resp = requests.get(status_url, headers=headers, timeout=30)
+        if status_resp.status_code != 200:
+            raise RuntimeError(f"Gnani.ai Batch API status error {status_resp.status_code}: {status_resp.text}")
+            
+        status_body = status_resp.json()
+        status = status_body.get("status", "").upper()
+        
+        if status == "COMPLETED":
+            print(f"[gnan_service] Batch job {job_id} completed.")
+            break
+        elif status in ("FAILED", "ERROR"):
+            error_info = status_body.get("error", {})
+            raise RuntimeError(f"Gnani.ai Batch API job failed: {error_info}")
+            
+        time.sleep(5) # Poll every 5 seconds
+        
+    # 4. Retrieve Files & Download Transcript
+    files_url = f"{base_batch_url}/{job_id}/files"
+    files_resp = requests.get(files_url, headers=headers, timeout=30)
+    if files_resp.status_code != 200:
+        raise RuntimeError(f"Gnani.ai Batch API files error {files_resp.status_code}: {files_resp.text}")
+        
+    files_body = files_resp.json()
+    transcript_url = files_body.get("transcript_url")
+    if not transcript_url:
+        raise RuntimeError(f"No transcript_url in batch files response: {files_body}")
+        
+    print(f"[gnan_service] Downloading transcript from {transcript_url}...")
+    dl_resp = requests.get(transcript_url, timeout=60)
+    if dl_resp.status_code != 200:
+        raise RuntimeError(f"Failed to download transcript from {transcript_url}: {dl_resp.status_code}")
+        
+    dl_body = dl_resp.json()
+    transcript = dl_body.get("transcript")
+    if transcript is None:
+        raise RuntimeError(f"Gnani.ai Batch API returned unexpected transcript format: {dl_body}")
+        
     return transcript
